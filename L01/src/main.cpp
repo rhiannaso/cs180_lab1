@@ -78,7 +78,7 @@ void calcBounds( struct Triangle t, struct BoundingBox *bb ) {
 }
 
 bool inTriangle(float val) {
-    return ((val > 0) && (val < 1));
+    return ((val >= 0) && (val <= 1));
 }
 
 bool isEdge(float alpha, float beta, float gamma) {
@@ -106,13 +106,25 @@ bool isEdge(float alpha, float beta, float gamma) {
 void colorPixel(int x, int y, float alpha, float beta, float gamma, shared_ptr<Image> image) {
     // If in triangle
     if(inTriangle(alpha) && inTriangle(beta) && inTriangle(gamma)) {
-        cout << "HERE\n";
-        image->setPixel(x, y, 255, 255, 255);
+        image->setPixel(x, y, 255, 0, 0);
     }
-    if (isEdge(alpha, beta, gamma)) { // If is triangle's edge
-        cout << "THERE\n";
-        image->setPixel(x, y, 220, 220, 220);
-    }
+    // if (isEdge(alpha, beta, gamma)) { // If is triangle's edge
+    //     cout << "THERE\n";
+    //     image->setPixel(x, y, 220, 220, 220);
+    // }
+}
+
+void calcBary(int oldX, int oldY, shared_ptr<Image> image, float tArea) {
+    int xaxc = t.x1 - t.x3;
+    int yayc = t.y1 - t.y3;
+    int xbxa = t.x2 - t.x1;
+    int ybya = t.y2 - t.y1;
+    float bArea = (xaxc*(oldY-t.y3)) - ((oldX-t.x3)*yayc);
+    float gArea = (xbxa*(oldY-t.y1)) - ((oldX-t.x1)*ybya);
+    float beta = bArea/tArea;
+    float gamma = gArea/tArea;
+    float alpha = 1 - beta - gamma;
+    colorPixel(oldX, oldY, alpha, beta, gamma, image);
 }
 
 void calcCoords(int oldX, int oldY, shared_ptr<Image> image) {
@@ -179,10 +191,14 @@ int main(int argc, char **argv)
 	// Create the image. We're using a `shared_ptr`, a C++11 feature.
 	auto image = make_shared<Image>(width, height);
 
+    // Calculate area of triangle
+    float tArea = ((t.x2-t.x1)*(t.y3-t.y1)) - ((t.x3-t.x1)*(t.y2-t.y1));
+
 	// Draw bounding box
 	for(int y = bb.ymin; y < bb.ymax+1; ++y) {
 		for(int x = bb.xmin; x < bb.xmax+1; ++x) {
-            calcCoords(x, y, image);
+            calcBary(x, y, image, tArea);
+            //calcCoords(x, y, image);
             // unsigned char r;
             // unsigned char g;
             // if (x % 2 == 0) {
