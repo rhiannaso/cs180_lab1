@@ -16,6 +16,15 @@ struct Triangle {
    int y2;
    int x3;
    int y3;
+   int r1;
+   int g1;
+   int b1;
+   int r2;
+   int g2;
+   int b2;
+   int r3;
+   int g3;
+   int b3;
 };
 
 struct BoundingBox {
@@ -30,13 +39,22 @@ struct Triangle t;
 // Bounding Box
 struct BoundingBox bb;
 
-void setTriangle(struct Triangle *t, int ax, int ay, int bx, int by, int cx, int cy) {
+void setTriangle(struct Triangle *t, int ax, int ay, int bx, int by, int cx, int cy, int r1, int g1, int b1, int r2, int g2, int b2, int r3, int g3, int b3) {
    t->x1 = ax;
    t->y1 = ay;
    t->x2 = bx;
    t->y2 = by;
    t->x3 = cx;
    t->y3 = cy;
+   t->r1 = r1;
+   t->g1 = g1;
+   t->b1 = b1;
+   t->r2 = r2;
+   t->g2 = g2;
+   t->b2 = b2;
+   t->r3 = r3;
+   t->g3 = g3;
+   t->b3 = b3;
 }
 
 void setBoundingBox(struct BoundingBox *bb, int xmin, int xmax, int ymin, int ymax) {
@@ -44,15 +62,6 @@ void setBoundingBox(struct BoundingBox *bb, int xmin, int xmax, int ymin, int ym
    bb->xmax = xmax;
    bb->ymin = ymin;
    bb->ymax = ymax;
-}
-
-void printT( struct Triangle t ) {
-    cout << "X1 : " << t.x1 << endl;
-    cout << "Y1 : " << t.y1 << endl;
-    cout << "X2 : " << t.x2 << endl;
-    cout << "Y2 : " << t.y2 << endl;
-    cout << "X3 : " << t.x3 << endl;
-    cout << "Y3 : " << t.y3 << endl;
 }
 
 int findMin(int c1, int c2, int c3) {
@@ -67,13 +76,9 @@ int findMax(int c1, int c2, int c3) {
 
 void calcBounds( struct Triangle t, struct BoundingBox *bb ) {
     int xmin = findMin(t.x1, t.x2, t.x3);
-    cout << "X MIN: " << xmin << endl;
     int xmax = findMax(t.x1, t.x2, t.x3);
-    cout << "X MAX: " << xmax << endl;
     int ymin = findMin(t.y1, t.y2, t.y3);
-    cout << "Y MIN: " << ymin << endl;
     int ymax = findMax(t.y1, t.y2, t.y3);
-    cout << "Y MAX: " << ymax << endl;
     setBoundingBox(bb, xmin, xmax, ymin, ymax);
 }
 
@@ -81,37 +86,13 @@ bool inTriangle(float val) {
     return ((val >= 0) && (val <= 1));
 }
 
-bool isEdge(float alpha, float beta, float gamma) {
-    int isZero = 0;
-    int isWithin = 0;
-
-    float arr[3] = {alpha, beta, gamma};
-
-    for(int i=0; i < 3; i++) {
-        if(arr[i] == 0) {
-            isZero++;
-        }
-        if(inTriangle(arr[i])) {
-            isWithin++;
-        }
-    }
-
-    if(isZero == 1 && isWithin == 2) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 void colorPixel(int x, int y, float alpha, float beta, float gamma, shared_ptr<Image> image) {
-    // If in triangle
     if(inTriangle(alpha) && inTriangle(beta) && inTriangle(gamma)) {
-        image->setPixel(x, y, 255, 0, 0);
+        float r = (alpha*t.r1)+(beta*t.r2)+(gamma*t.r3);
+        float g = (alpha*t.g1)+(beta*t.g2)+(gamma*t.g3);
+        float b = (alpha*t.b1)+(beta*t.b2)+(gamma*t.b3);
+        image->setPixel(x, y, r, g, b);
     }
-    // if (isEdge(alpha, beta, gamma)) { // If is triangle's edge
-    //     cout << "THERE\n";
-    //     image->setPixel(x, y, 220, 220, 220);
-    // }
 }
 
 void calcBary(int oldX, int oldY, shared_ptr<Image> image, float tArea) {
@@ -123,20 +104,6 @@ void calcBary(int oldX, int oldY, shared_ptr<Image> image, float tArea) {
     float gArea = (xbxa*(oldY-t.y1)) - ((oldX-t.x1)*ybya);
     float beta = bArea/tArea;
     float gamma = gArea/tArea;
-    float alpha = 1 - beta - gamma;
-    colorPixel(oldX, oldY, alpha, beta, gamma, image);
-}
-
-void calcCoords(int oldX, int oldY, shared_ptr<Image> image) {
-    int ycya = t.y3-t.y1;
-    int ybya = t.y2-t.y1;
-    int xcxa = t.x3-t.x1;
-    int xbxa = t.x2-t.x1;
-    float divisor = 1 - ((ycya*xbxa)/(ybya*xcxa));
-    float sub1 = (oldY-t.y1)/ybya;
-    float sub2 = (ycya*(oldX-t.x1))/(ybya*xcxa);
-    float beta = (sub1-sub2)/divisor;
-    float gamma = (oldX - t.x1 - (beta*xbxa))/xcxa;
     float alpha = 1 - beta - gamma;
     colorPixel(oldX, oldY, alpha, beta, gamma, image);
 }
@@ -184,8 +151,7 @@ int main(int argc, char **argv)
     // Vertex 3 b value
     int b3 = atoi(argv[18]);
 
-    setTriangle(&t, x1, y1, x2, y2, x3, y3);
-    //printT(t);
+    setTriangle(&t, x1, y1, x2, y2, x3, y3, r1, g1, b1, r2, g2, b2, r3, g3, b3);
     calcBounds(t, &bb);
 
 	// Create the image. We're using a `shared_ptr`, a C++11 feature.
@@ -198,27 +164,8 @@ int main(int argc, char **argv)
 	for(int y = bb.ymin; y < bb.ymax+1; ++y) {
 		for(int x = bb.xmin; x < bb.xmax+1; ++x) {
             calcBary(x, y, image, tArea);
-            //calcCoords(x, y, image);
-            // unsigned char r;
-            // unsigned char g;
-            // if (x % 2 == 0) {
-            //     r = 0;
-            //     g = 0;
-            // } else {
-            //     r = 0;
-            //     g = 0;
-            // }
-			// // unsigned char r = 255;
-			// // unsigned char g = 0;
-			// unsigned char b = 0;
-			// image->setPixel(x, y, r, g, b);
 		}
 	}
-
-    // Draw vertices
-    image->setPixel(x1, y1, r1, g1, b1);
-    image->setPixel(x2, y2, r2, g2, b2);
-    image->setPixel(x3, y3, r3, g3, b3);
 
 	// Write image to file
 	image->writeToFile(filename);
