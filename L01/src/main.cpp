@@ -38,6 +38,7 @@ struct BoundingBox {
 struct Triangle t;
 // Bounding Box
 struct BoundingBox bb;
+float epsilon = 0.00001;
 
 void setTriangle(struct Triangle *t, int ax, int ay, int bx, int by, int cx, int cy, int r1, int g1, int b1, int r2, int g2, int b2, int r3, int g3, int b3) {
    t->x1 = ax;
@@ -83,7 +84,7 @@ void calcBounds( struct Triangle t, struct BoundingBox *bb ) {
 }
 
 bool inTriangle(float val) {
-    return ((val >= 0) && (val <= 1));
+    return ((val >= -epsilon) && (val <= (1+epsilon)));
 }
 
 void colorPixel(int x, int y, float alpha, float beta, float gamma, shared_ptr<Image> image) {
@@ -125,31 +126,31 @@ int main(int argc, char **argv)
     // Vertex 1 y-coordinate
     int y1 = atoi(argv[5]);
     // Vertex 1 r value
-    int r1 = atoi(argv[6]);
+    float r1 = atoi(argv[6]);
     // Vertex 1 g value
-    int g1 = atoi(argv[7]);
+    float g1 = atoi(argv[7]);
     // Vertex 1 b value
-    int b1 = atoi(argv[8]);
+    float b1 = atoi(argv[8]);
     // Vertex 2 x-coordinate
     int x2 = atoi(argv[9]);
     // Vertex 2 y-coordinate
     int y2 = atoi(argv[10]);
     // Vertex 2 r value
-    int r2 = atoi(argv[11]);
+    float r2 = atoi(argv[11]);
     // Vertex 2 g value
-    int g2 = atoi(argv[12]);
+    float g2 = atoi(argv[12]);
     // Vertex 2 b value
-    int b2 = atoi(argv[13]);
+    float b2 = atoi(argv[13]);
     // Vertex 3 x-coordinate
     int x3 = atoi(argv[14]);
     // Vertex 3 y-coordinate
     int y3 = atoi(argv[15]);
     // Vertex 3 r value
-    int r3 = atoi(argv[16]);
+    float r3 = atoi(argv[16]);
     // Vertex 3 g value
-    int g3 = atoi(argv[17]);
+    float g3 = atoi(argv[17]);
     // Vertex 3 b value
-    int b3 = atoi(argv[18]);
+    float b3 = atoi(argv[18]);
 
     setTriangle(&t, x1, y1, x2, y2, x3, y3, r1, g1, b1, r2, g2, b2, r3, g3, b3);
     calcBounds(t, &bb);
@@ -161,8 +162,8 @@ int main(int argc, char **argv)
     float tArea = ((t.x2-t.x1)*(t.y3-t.y1)) - ((t.x3-t.x1)*(t.y2-t.y1));
 
 	// Draw bounding box
-	for(int y = bb.ymin; y < bb.ymax+1; ++y) {
-		for(int x = bb.xmin; x < bb.xmax+1; ++x) {
+	for(int y = bb.ymin; y <= bb.ymax; ++y) {
+		for(int x = bb.xmin; x <= bb.xmax; ++x) {
             calcBary(x, y, image, tArea);
 		}
 	}
