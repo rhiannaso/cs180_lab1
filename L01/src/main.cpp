@@ -110,7 +110,7 @@ void calcBary(int oldX, int oldY, shared_ptr<Image> image, float tArea) {
 
 int main(int argc, char **argv)
 {
-	if(argc < 4) {
+	if(argc < 19) {
 		cout << "Usage: Lab1 <out_image_name>.png width height x1 y1 r1 g1 b1 x2 y2 r2 g2 b2 x3 y3 r3 g3 b3" << endl;
 		return 0;
 	}
